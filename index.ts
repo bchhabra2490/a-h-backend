@@ -23,22 +23,6 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-console.log(process.env.ASSEMBLYAI_API_KEY);
-
-const client = new AssemblyAI({
-  apiKey: process.env.ASSEMBLYAI_API_KEY || '',
-});
-
-interface TranscriberSession {
-  sessionId: string;
-}
-
-interface Transcript {
-  text: string;
-}
-
-// Store active transcription sessions
-
 // Store active file handles for each socket
 const activeFiles = new Map<string, string>();
 const audioTime = new Map<string, number>();
@@ -113,7 +97,7 @@ io.on('connection', async (socket: Socket) => {
   socket.on('disconnect', async () => {
     // Clean up the file
     const fileName = activeFiles.get(socket.id);
-        if (fileName) {
+    if (fileName) {
       activeFiles.delete(socket.id);
     }
     console.log('Client disconnected:', socket.id);
