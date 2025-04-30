@@ -27,22 +27,16 @@ app.use(express.json());
 const activeFiles = new Map<string, string>();
 const audioTime = new Map<string, number>();
 
+const AUDIO_DATA_INTERVAL = 5;
+const CLIP_INTERVAL = 10;
+
 io.on('connection', async (socket: Socket) => {
   console.log('Client connected:', socket.id);
   
   // Create a unique file for this socket connection
   const fileName = `audio-${socket.id}-${Date.now()}.webm`;
   activeFiles.set(socket.id, fileName);
-  
   audioTime.set(socket.id, 0);  
-  socket.on('start-recording', async () => {
-    try {
-      // TODO: Start the transcription
-    } catch (error) {
-      console.error('Error starting transcription:', error);
-      socket.emit('error', { message: 'Failed to start transcription' });
-    }
-  });
 
   socket.on('audio-data', async (data: Buffer) => {
     console.log("Audio data received", data.length);
@@ -56,10 +50,10 @@ io.on('connection', async (socket: Socket) => {
         // Append data to the file
         fs.appendFileSync(fileName, data);
         
-        if((currentAudioTime + 5) % 10 === 0) {
+        if((currentAudioTime + AUDIO_DATA_INTERVAL) % CLIP_INTERVAL === 0) {
           // Create a new clip
-          const startInterval = currentAudioTime - 5;
-          const endInterval = currentAudioTime + 5;
+          const startInterval = currentAudioTime - AUDIO_DATA_INTERVAL;
+          const endInterval = currentAudioTime + AUDIO_DATA_INTERVAL;
           await processAudioClip(fileName, startInterval, endInterval, socket);
         }
       } catch (error) {
@@ -77,15 +71,16 @@ io.on('connection', async (socket: Socket) => {
     }
 
     const currentAudioTime = audioTime.get(socket.id) || 0;
-    if(currentAudioTime > 0 && currentAudioTime % 5 === 0 && currentAudioTime % 10 !== 0) {
+    if(currentAudioTime > 0 && currentAudioTime % 5 === 0 && currentAudioTime % CLIP_INTERVAL !== 0) {
       // Save the clip of the rest of the audio
 
-      const startInterval = currentAudioTime - 5;
+      const extraAudioTime = currentAudioTime % CLIP_INTERVAL;
+      const startInterval = currentAudioTime - extraAudioTime;
       const endInterval = currentAudioTime;
       
       await processAudioClip(fileName, startInterval, endInterval, socket);
     }
-    // TODO: Upload the file
+    // TODO: Upload the complete audio file
 
     // Generate the SOAP notes from transcripts
     const soapNotes = await generateSOAPNotes(fileName);

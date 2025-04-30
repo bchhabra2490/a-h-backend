@@ -7,59 +7,20 @@ const client = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY || '',
 });
 
-const keytermsPrompt = [
-    // Subjective phrases
-    "I’ve been feeling dizzy",
-    "Pain started last week",
-    "It hurts when I",
-    "I feel nauseous",
-    "Shortness of breath",
-    "Sharp pain in chest",
-    "Fever and chills",
-    "Trouble sleeping",
-    "I’m feeling anxious",
-    "Burning sensation",
-    "Throbbing headache",
-    "Loss of appetite",
-    "How long has it lasted?",
-
-    // Objective phrases
-    "Blood pressure is elevated",
-    "Heart rate normal",
-    "Lungs are clear",
-    "No signs of infection",
-    "Temperature is 101",
-    "Skin appears jaundiced",
-    "Mild abdominal tenderness",
-    "No swelling noted",
-    "Reflexes are normal",
-    "Eyes are reactive",
-    "Mucous membranes moist",
-
-    // Assessment
-    "Likely viral infection",
-    "Possible UTI",
-    "Mild dehydration",
-    "Consistent with migraine",
-    "No acute distress",
-    "Symptoms suggest sinusitis",
-    "Could be anxiety-related",
-    "Rule out strep",
-    "Monitor blood sugar",
-    "Chronic back pain",
-
-    // Plan
-    "I’ll prescribe antibiotics",
-    "Take Tylenol as needed",
-    "Refer to specialist",
-    "Follow up in one week",
-    "Let’s order labs",
-    "Increase fluid intake",
-    "Start physical therapy",
-    "Schedule imaging",
-    "Avoid strenuous activity",
-    "Try over-the-counter meds",
-]
+const medicalConversationKeywords = [
+    "pain", "nausea", "dizzy", "tired", "fever", "chills", "cough", "sore", "itchy", "burning",
+    "pressure", "swelling", "numbness", "tingling", "cramping", "headache", "vomiting", "fatigue", "congestion", "discomfort",
+    "chest", "head", "back", "stomach", "abdomen", "leg", "arm", "knee", "throat", "ear",
+    "eye", "neck", "shoulder", "foot", "hand",
+    "check", "examine", "listen", "test", "scan", "refer", "prescribe", "monitor", "evaluate", "diagnose",
+    "treat", "schedule", "follow-up", "bloodwork", "imaging",
+    "I feel", "hurts", "started", "getting worse", "cant sleep", "not sure", "been happening", "I think", "every day", "off and on",
+    "lets check", "looks like", "sounds like", "could be", "Ill order", "recommend", "suggest", "observe",
+    "infection", "inflammation", "diabetes", "hypertension", "migraine", "cold", "flu", "allergy", "asthma", "anxiety",
+    "depression", "sinusitis", "UTI", "arthritis", "eczema",
+    "symptoms", "duration", "chronic", "acute", "mild", "moderate", "severe", "previous", "medications", "dosage",
+    "allergies", "history", "better", "worse", "today"
+  ];
 
 export async function transcribe(fileName: string) {
     // Upload the file to assemblyai    
@@ -70,8 +31,14 @@ export async function transcribe(fileName: string) {
     // Transcribe the file
     const transcript = await client.transcripts.transcribe({
         audio: fileName,
-        keyterms_prompt: keytermsPrompt,
+        word_boost: medicalConversationKeywords,
     });
+
+    if (transcript.status === "error") {
+        console.error("Error transcribing file: ", transcript.error);
+        return '';
+    }
+
     console.log("Transcript: ", transcript);
     return transcript.text || '';
 }
