@@ -85,7 +85,6 @@ io.on('connection', async (socket: Socket) => {
     // Generate the SOAP notes from transcripts
     const soapNotes = await generateSOAPNotes(fileName);
     console.log("SOAP notes: ", soapNotes);
-    // Send the SOAP notes to the client
     socket.emit('soap-notes', { text: soapNotes });
   });
 

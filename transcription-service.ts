@@ -23,11 +23,6 @@ const medicalConversationKeywords = [
   ];
 
 export async function transcribe(fileName: string) {
-    // Upload the file to assemblyai    
-        const params = {
-            audio: fileName,
-        }
-
     // Transcribe the file
     const transcript = await client.transcripts.transcribe({
         audio: fileName,
